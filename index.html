@@ -7,89 +7,157 @@
 <title>Trái Tim ❤️</title>
 
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#heart {
+    position: relative;
+    width: min(95vw, 650px);
+    height: min(95vw, 650px);
+
+    animation: heartbeat 1.3s ease-in-out infinite;
+}
+
+/* Hạt */
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    background: #ff4da6;
+
+    box-shadow:
+        0 0 5px #ff4da6,
+        0 0 12px #ff1493,
+        0 0 20px #ff69b4;
+
+    pointer-events: none;
+
+    animation:
+        sparkle var(--duration) ease-in-out infinite;
+}
+
+/* Tim đập */
+@keyframes heartbeat {
+
+    0% {
+        transform: scale(1);
     }
 
-    html, body {
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
+    15% {
+        transform: scale(1.08);
     }
 
-    body {
-        background: #000;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+    30% {
+        transform: scale(1);
     }
 
-    #heart {
-        position: relative;
-        width: min(90vw, 600px);
-        height: min(90vw, 600px);
-        animation: heartbeat 1.4s ease-in-out infinite;
+    45% {
+        transform: scale(1.08);
     }
 
-    .particle {
-        position: absolute;
-        width: 3px;
-        height: 3px;
-        border-radius: 50%;
-        background: #ff4d9d;
-        box-shadow:
-            0 0 5px #ff4d9d,
-            0 0 10px #ff1493;
-        pointer-events: none;
+    60% {
+        transform: scale(1);
     }
 
-    @keyframes heartbeat {
-        0%, 100% {
-            transform: scale(1);
-        }
-
-        15% {
-            transform: scale(1.08);
-        }
-
-        30% {
-            transform: scale(1);
-        }
-
-        45% {
-            transform: scale(1.08);
-        }
-
-        60% {
-            transform: scale(1);
-        }
+    100% {
+        transform: scale(1);
     }
+}
+
+/* Hạt nhấp nháy */
+@keyframes sparkle {
+
+    0%, 100% {
+        opacity: 0.25;
+        transform: scale(0.7);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.5);
+    }
+}
+
+/* Chữ giữa tim */
+#text {
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    transform: translate(-50%, -50%);
+
+    color: white;
+
+    font-size: clamp(20px, 5vw, 38px);
+
+    font-weight: bold;
+
+    text-shadow:
+        0 0 5px #fff,
+        0 0 15px #ff1493,
+        0 0 30px #ff1493;
+
+    z-index: 10;
+
+    white-space: nowrap;
+}
 </style>
 </head>
 
 <body>
 
-<div id="heart"></div>
+<div id="heart">
+
+    <div id="text">
+        ❤️
+    </div>
+
+</div>
 
 <script>
+
 const heart = document.getElementById("heart");
 
-const particleCount = 2500;
+/* Số lượng hạt */
+const particleCount = 3500;
 
+/* Random */
 function random(min, max) {
     return Math.random() * (max - min) + min;
 }
 
+/* Tạo trái tim */
 function createHeart() {
 
     const width = heart.clientWidth;
     const height = heart.clientHeight;
 
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    const heartSize = Math.min(width, height) / 32;
+
     for (let i = 0; i < particleCount; i++) {
 
-        // Công thức tạo hình trái tim
+        /*
+        Công thức trái tim
+        */
         const t = Math.random() * Math.PI * 2;
 
         const x =
@@ -101,42 +169,64 @@ function createHeart() {
             - 2 * Math.cos(3 * t)
             - Math.cos(4 * t));
 
-        // Phân bố hạt vào bên trong trái tim
-        const scale = random(0.65, 1.35);
+        /*
+        Phân bố hạt vào bên trong
+        */
+        const scale = Math.sqrt(random(0.05, 1.15));
 
         const px = x * scale;
         const py = y * scale;
 
+        /*
+        Tạo hạt
+        */
         const particle = document.createElement("div");
 
         particle.className = "particle";
 
-        const centerX = width / 2;
-        const centerY = height / 2;
+        /*
+        Kích thước ngẫu nhiên
+        */
+        const size = random(1, 4);
 
-        const heartSize = Math.min(width, height) / 32;
+        particle.style.width = size + "px";
+        particle.style.height = size + "px";
 
+        /*
+        Vị trí
+        */
         particle.style.left =
             centerX + px * heartSize + "px";
 
         particle.style.top =
             centerY + py * heartSize + "px";
 
-        // Kích thước hạt ngẫu nhiên
-        const size = random(1, 4);
-
-        particle.style.width = size + "px";
-        particle.style.height = size + "px";
-
-        // Độ sáng ngẫu nhiên
+        /*
+        Độ sáng
+        */
         particle.style.opacity =
-            random(0.35, 1);
+            random(0.3, 1);
+
+        /*
+        Tốc độ nhấp nháy
+        */
+        particle.style.setProperty(
+            "--duration",
+            random(1, 3) + "s"
+        );
+
+        /*
+        Delay khác nhau
+        */
+        particle.style.animationDelay =
+            random(0, 3) + "s";
 
         heart.appendChild(particle);
     }
 }
 
 createHeart();
+
 </script>
 
 </body>
