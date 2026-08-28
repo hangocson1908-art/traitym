@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Trái Tim ❤️</title>
+<title>❤️ Love</title>
 
 <style>
 * {
@@ -17,7 +17,7 @@ html, body {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background: black;
+    background: #000;
 }
 
 body {
@@ -27,6 +27,7 @@ body {
 }
 
 canvas {
+    display: block;
     width: 100vw;
     height: 100vh;
 }
@@ -35,11 +36,11 @@ canvas {
 
 <body>
 
-<canvas id="heart"></canvas>
+<canvas id="canvas"></canvas>
 
 <script>
 
-const canvas = document.getElementById("heart");
+const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
 let W, H;
@@ -50,7 +51,6 @@ function resize() {
 }
 
 resize();
-
 window.addEventListener("resize", resize);
 
 
@@ -58,9 +58,15 @@ window.addEventListener("resize", resize);
    CẤU HÌNH
 ========================= */
 
-const COUNT = 3500;
+const HEART_PARTICLES = 4200;
+const FLOATING_PARTICLES = 100;
 
-let particles = [];
+let heartParticles = [];
+let floatingParticles = [];
+let littleHearts = [];
+let rings = [];
+
+let time = 0;
 
 
 /* =========================
@@ -73,16 +79,17 @@ function random(min, max) {
 
 
 /* =========================
-   TẠO HẠT TRÁI TIM
+   TRÁI TIM
 ========================= */
 
 function createHeart() {
 
-    particles = [];
+    heartParticles = [];
 
-    for (let i = 0; i < COUNT; i++) {
+    for (let i = 0; i < HEART_PARTICLES; i++) {
 
-        const t = Math.random() * Math.PI * 2;
+        const t =
+            Math.random() * Math.PI * 2;
 
         const x =
             16 * Math.pow(Math.sin(t), 3);
@@ -96,93 +103,287 @@ function createHeart() {
             );
 
         /*
-        Phân bố hạt bên trong trái tim
+        Làm hạt nằm bên trong tim
         */
 
         const scale =
-            Math.sqrt(random(0.05, 1.05));
+            Math.sqrt(random(0.03, 1.08));
 
-        particles.push({
+        heartParticles.push({
 
             x: x * scale,
-
             y: y * scale,
 
-            size: random(0.7, 2.8),
+            size: random(0.5, 2.7),
 
-            opacity: random(0.3, 1),
+            alpha: random(0.25, 1),
 
-            speed: random(0.5, 2),
+            speed: random(0.5, 2.5),
 
             phase: random(0, Math.PI * 2),
 
-            drift: random(0.1, 0.7)
+            drift: random(0.1, 0.8)
+
+        });
+    }
+}
+
+
+/* =========================
+   HẠT BAY XUNG QUANH
+========================= */
+
+function createFloatingParticles() {
+
+    floatingParticles = [];
+
+    for (let i = 0; i < FLOATING_PARTICLES; i++) {
+
+        floatingParticles.push({
+
+            x: random(0, W),
+
+            y: random(0, H),
+
+            size: random(0.5, 2),
+
+            speed: random(0.15, 0.5),
+
+            alpha: random(0.2, 0.7),
+
+            phase: random(0, Math.PI * 2)
 
         });
     }
 }
 
 createHeart();
+createFloatingParticles();
+
+
+/* =========================
+   TIM ĐẬP
+========================= */
+
+function getHeartbeat() {
+
+    const cycle =
+        (time % 2.2);
+
+    let beat = 1;
+
+    if (cycle < 0.18) {
+
+        beat =
+            1 +
+            Math.sin(
+                cycle / 0.18 * Math.PI
+            ) * 0.09;
+
+    } else if (cycle > 0.25 && cycle < 0.43) {
+
+        beat =
+            1 +
+            Math.sin(
+                (cycle - 0.25) /
+                0.18 *
+                Math.PI
+            ) * 0.055;
+    }
+
+    return beat;
+}
+
+
+/* =========================
+   TIM NHỎ BAY LÊN
+========================= */
+
+function createLittleHeart() {
+
+    const angle =
+        random(0, Math.PI * 2);
+
+    const distance =
+        random(80, 230);
+
+    littleHearts.push({
+
+        x: W / 2 +
+            Math.cos(angle) * distance,
+
+        y: H / 2 +
+            Math.sin(angle) * distance,
+
+        speed: random(0.3, 0.8),
+
+        size: random(5, 12),
+
+        alpha: 1,
+
+        rotation: random(0, Math.PI * 2),
+
+        rotateSpeed: random(-0.02, 0.02)
+
+    });
+}
+
+
+/* =========================
+   VÒNG SÁNG
+========================= */
+
+function createRing() {
+
+    rings.push({
+
+        radius: Math.min(W, H) * 0.22,
+
+        alpha: 0.7
+
+    });
+}
+
+
+/* =========================
+   VẼ TIM NHỎ
+========================= */
+
+function drawLittleHeart(x, y, size, alpha) {
+
+    ctx.save();
+
+    ctx.translate(x, y);
+
+    ctx.globalAlpha = alpha;
+
+    ctx.fillStyle = "#ff4da6";
+
+    ctx.shadowBlur = 12;
+
+    ctx.shadowColor = "#ff1493";
+
+    ctx.beginPath();
+
+    ctx.moveTo(0, size * 0.9);
+
+    ctx.bezierCurveTo(
+        -size * 1.5,
+        size * 0.1,
+        -size,
+        -size,
+        0,
+        -size * 0.3
+    );
+
+    ctx.bezierCurveTo(
+        size,
+        -size,
+        size * 1.5,
+        size * 0.1,
+        0,
+        size * 0.9
+    );
+
+    ctx.fill();
+
+    ctx.restore();
+}
 
 
 /* =========================
    ANIMATION
 ========================= */
 
-let time = 0;
-
 function animate() {
 
-    time += 0.025;
+    time += 0.016;
 
     /*
-    Xóa màn hình
+    Nền
     */
 
-    ctx.fillStyle = "black";
+    ctx.fillStyle = "#000";
 
-    ctx.fillRect(
-        0,
-        0,
-        W,
-        H
-    );
+    ctx.fillRect(0, 0, W, H);
 
 
     /*
-    HIỆU ỨNG TIM ĐẬP
+    HẠT NỀN BAY
+    */
+
+    for (const p of floatingParticles) {
+
+        p.y -= p.speed;
+
+        if (p.y < -10) {
+            p.y = H + 10;
+        }
+
+        const x =
+            p.x +
+            Math.sin(
+                time + p.phase
+            ) * 15;
+
+        ctx.globalAlpha =
+            p.alpha *
+            (
+                0.5 +
+                0.5 *
+                Math.sin(
+                    time * 2 +
+                    p.phase
+                )
+            );
+
+        ctx.fillStyle = "#ff6bb5";
+
+        ctx.shadowBlur = 8;
+
+        ctx.shadowColor = "#ff1493";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x,
+            p.y,
+            p.size,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+    }
+
+
+    ctx.globalAlpha = 1;
+
+
+    /*
+    TIM ĐẬP
     */
 
     const beat =
-        1 +
-        Math.max(
-            0,
-            Math.sin(time * 3)
-        ) * 0.07;
+        getHeartbeat();
 
-
-    /*
-    Kích thước trái tim
-    */
 
     const scale =
         Math.min(W, H) / 34;
 
 
-    const centerX = W / 2;
+    const centerX =
+        W / 2;
 
-    const centerY = H / 2;
+    const centerY =
+        H / 2;
 
 
     /*
-    Vẽ từng hạt
+    HẠT TRÁI TIM
     */
 
-    for (const p of particles) {
-
-        /*
-        Hạt chuyển động nhẹ
-        */
+    for (const p of heartParticles) {
 
         const movement =
             Math.sin(
@@ -209,12 +410,8 @@ function animate() {
             p.drift;
 
 
-        /*
-        Hạt nhấp nháy
-        */
-
         const alpha =
-            p.opacity *
+            p.alpha *
             (
                 0.55 +
                 0.45 *
@@ -225,27 +422,24 @@ function animate() {
             );
 
 
-        /*
-        Màu hồng
-        */
+        ctx.globalAlpha =
+            Math.max(
+                0.1,
+                alpha
+            );
+
 
         ctx.fillStyle =
-            `rgba(255, 55, 145, ${alpha})`;
+            "#ff4da6";
 
 
-        /*
-        Ánh sáng
-        */
+        ctx.shadowBlur =
+            7;
 
-        ctx.shadowBlur = 7;
 
         ctx.shadowColor =
             "#ff1493";
 
-
-        /*
-        Vẽ hạt
-        */
 
         ctx.beginPath();
 
@@ -258,14 +452,136 @@ function animate() {
         );
 
         ctx.fill();
+    }
+
+
+    ctx.globalAlpha = 1;
+
+
+    /*
+    VÒNG SÁNG KHI TIM ĐẬP
+    */
+
+    if (
+        Math.sin(time * Math.PI) > 0.96 &&
+        Math.random() < 0.025
+    ) {
+
+        createRing();
 
     }
 
 
+    for (
+        let i = rings.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        const r = rings[i];
+
+        r.radius += 2.5;
+
+        r.alpha -= 0.012;
+
+
+        if (r.alpha <= 0) {
+
+            rings.splice(i, 1);
+
+            continue;
+        }
+
+
+        ctx.globalAlpha =
+            r.alpha;
+
+        ctx.strokeStyle =
+            "#ff4da6";
+
+        ctx.lineWidth = 2;
+
+        ctx.shadowBlur = 15;
+
+        ctx.shadowColor =
+            "#ff1493";
+
+
+        ctx.beginPath();
+
+        ctx.arc(
+            centerX,
+            centerY,
+            r.radius,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.stroke();
+
+    }
+
+
+    /*
+    TIM NHỎ BAY LÊN
+    */
+
+    if (Math.random() < 0.025) {
+
+        createLittleHeart();
+
+    }
+
+
+    for (
+        let i = littleHearts.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        const h =
+            littleHearts[i];
+
+
+        h.y -= h.speed;
+
+        h.alpha -= 0.004;
+
+        h.rotation +=
+            h.rotateSpeed;
+
+
+        drawLittleHeart(
+            h.x +
+            Math.sin(time * 2) * 10,
+
+            h.y,
+
+            h.size,
+
+            h.alpha
+        );
+
+
+        if (h.alpha <= 0) {
+
+            littleHearts.splice(i, 1);
+
+        }
+
+    }
+
+
+    ctx.globalAlpha = 1;
+
     ctx.shadowBlur = 0;
 
-    requestAnimationFrame(animate);
+
+    requestAnimationFrame(
+        animate
+    );
 }
+
 
 animate();
 
