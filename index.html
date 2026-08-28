@@ -4,19 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>❤️</title>
+<title>Trái Tim ❤️</title>
 
 <style>
 * {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
 }
 
 html, body {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background: #000;
+    background: black;
 }
 
 body {
@@ -28,37 +29,24 @@ body {
 canvas {
     width: 100vw;
     height: 100vh;
-    display: block;
 }
 </style>
 </head>
 
 <body>
 
-<canvas id="canvas"></canvas>
+<canvas id="heart"></canvas>
 
 <script>
 
-const canvas = document.getElementById("canvas");
+const canvas = document.getElementById("heart");
 const ctx = canvas.getContext("2d");
 
-let width;
-let height;
-
-let particles = [];
-
-const PARTICLE_COUNT = 3000;
-
-
-/* =========================
-   KÍCH THƯỚC
-========================= */
+let W, H;
 
 function resize() {
-
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
 }
 
 resize();
@@ -67,43 +55,37 @@ window.addEventListener("resize", resize);
 
 
 /* =========================
+   CẤU HÌNH
+========================= */
+
+const COUNT = 3500;
+
+let particles = [];
+
+
+/* =========================
    RANDOM
 ========================= */
 
 function random(min, max) {
-
     return Math.random() * (max - min) + min;
-
 }
 
 
 /* =========================
-   TẠO TRÁI TIM
+   TẠO HẠT TRÁI TIM
 ========================= */
 
-function createParticles() {
+function createHeart() {
 
     particles = [];
 
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
+    for (let i = 0; i < COUNT; i++) {
 
-        /*
-        Tham số trái tim
-        */
-
-        const t =
-            Math.random() *
-            Math.PI * 2;
-
-
-        /*
-        Công thức trái tim
-        */
+        const t = Math.random() * Math.PI * 2;
 
         const x =
-            16 *
-            Math.pow(Math.sin(t), 3);
-
+            16 * Math.pow(Math.sin(t), 3);
 
         const y =
             -(
@@ -113,108 +95,83 @@ function createParticles() {
                 - Math.cos(4 * t)
             );
 
-
         /*
-        Làm hạt phân bố quanh đường tim
+        Phân bố hạt bên trong trái tim
         */
 
-        const spread =
-            random(0.82, 1.08);
-
-
-        const px =
-            x * spread;
-
-
-        const py =
-            y * spread;
-
+        const scale =
+            Math.sqrt(random(0.05, 1.05));
 
         particles.push({
 
-            x: px,
+            x: x * scale,
 
-            y: py,
+            y: y * scale,
 
-            size: random(0.6, 2.5),
+            size: random(0.7, 2.8),
 
-            alpha: random(0.2, 1),
+            opacity: random(0.3, 1),
 
             speed: random(0.5, 2),
 
             phase: random(0, Math.PI * 2),
 
-            drift: random(0.1, 0.5)
+            drift: random(0.1, 0.7)
 
         });
-
     }
-
 }
 
-createParticles();
+createHeart();
 
 
 /* =========================
-   VẼ
+   ANIMATION
 ========================= */
 
 let time = 0;
 
-
 function animate() {
 
-    time += 0.02;
-
-
-    ctx.clearRect(
-        0,
-        0,
-        width,
-        height
-    );
-
+    time += 0.025;
 
     /*
-    Nền đen
+    Xóa màn hình
     */
 
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = "black";
 
     ctx.fillRect(
         0,
         0,
-        width,
-        height
+        W,
+        H
     );
 
 
     /*
-    NHỊP ĐẬP
+    HIỆU ỨNG TIM ĐẬP
     */
 
-    const heartbeat =
+    const beat =
         1 +
         Math.max(
             0,
             Math.sin(time * 3)
-        ) * 0.06;
+        ) * 0.07;
 
 
     /*
-    Kích thước tim
+    Kích thước trái tim
     */
 
     const scale =
-        Math.min(width, height) / 34;
+        Math.min(W, H) / 34;
 
 
-    const centerX =
-        width / 2;
+    const centerX = W / 2;
 
-
-    const centerY =
-        height / 2;
+    const centerY = H / 2;
 
 
     /*
@@ -223,12 +180,11 @@ function animate() {
 
     for (const p of particles) {
 
-
         /*
-        Hạt rung nhẹ
+        Hạt chuyển động nhẹ
         */
 
-        const wave =
+        const movement =
             Math.sin(
                 time * p.speed +
                 p.phase
@@ -239,8 +195,8 @@ function animate() {
             centerX +
             p.x *
             scale *
-            heartbeat +
-            wave *
+            beat +
+            movement *
             p.drift;
 
 
@@ -248,8 +204,8 @@ function animate() {
             centerY +
             p.y *
             scale *
-            heartbeat +
-            wave *
+            beat +
+            movement *
             p.drift;
 
 
@@ -258,7 +214,7 @@ function animate() {
         */
 
         const alpha =
-            p.alpha *
+            p.opacity *
             (
                 0.55 +
                 0.45 *
@@ -278,12 +234,10 @@ function animate() {
 
 
         /*
-        Glow
+        Ánh sáng
         */
 
-        ctx.shadowBlur =
-            random(3, 9);
-
+        ctx.shadowBlur = 7;
 
         ctx.shadowColor =
             "#ff1493";
@@ -308,17 +262,10 @@ function animate() {
     }
 
 
-    /*
-    Reset shadow
-    */
-
     ctx.shadowBlur = 0;
 
-
     requestAnimationFrame(animate);
-
 }
-
 
 animate();
 
